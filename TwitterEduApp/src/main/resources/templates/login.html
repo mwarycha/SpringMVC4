@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/default">
+<head>
+    <title>Logowanie</title>
+</head>
+<body>
+<div class="section no-pad-bot" layout:fragment="content">
+    <div class="container">
+
+        <h2 class="header center orange-text">Logowanie</h2>
+
+        <div class="row">
+            <div id="errorMessage" class="card-panel red lighten-2" th:if="${param.error}">
+                <span class="card-title">Błędna nazwa lub hasło</span>
+            </div>
+
+            <form class="col s12" action="/login" method="post">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input id="username" name="username" type="text" class="validate"/>
+                        <label for="username">Nazwa</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input id="password" name="password" type="password" class="validate"/>
+                        <label for="password">Hasło</label>
+                    </div>
+                </div>
+                <div class="row center">
+                    <button class="btn indigo waves-effect waves-light" type="submit" name="action">Wyślij
+                        <i class="mdi-content-send right"></i>
+                    </button>
+                </div>
+
+            </form>
+
+            <form th:action="@{/signin/twitter}" method="POST" class="center">
+                <div class="row">
+                    <button class="btn indigo" name="twitterSignin" type="submit">Logowanie przez Twitter
+                        <i class="mdi-social-group-add left"></i>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>
