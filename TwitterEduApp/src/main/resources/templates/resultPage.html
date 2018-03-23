@@ -27,42 +27,77 @@
 
     <script layout:fragment="script" th:inline="javascript">
 
-    var currentLocation = window.location.href;
-    var search = currentLocation.substr(currentLocation.lastIndexOf('=') +1);
+       /*
+           The term CDATA is used about text data that should not be parsed by the XML parser.
+           CDATA stands for Character Data and it means that the data in between
+           these strings includes data that could be interpreted as XML markup, but should not be.
+           everything inside the CDATA section is ignored by the XML parser.
 
-    function connect() {
+           The /*[[...]]*/ syntax, instructs Thymeleaf to evaluate the contained expression.
+           Thymeleaf will execute the expression and insert the result, but it will also remove all the code
+           in the line after the inline expression itself (the part that is executed when displayed statically).
 
-      var socket  = new SockJS("/hello");
-      stompClient = Stomp.over(socket);
+       */
 
-      // stompClient.debug = null;
-      stompClient.connect({}, function (frame) {
+        /*<![CDATA[*/
 
-          console.log('Connected: ' + frame);
-          stompClient.subscribe('/topic/searchResults', function (result){
-              displayTweets(JSON.parse(result.body));
-          });
 
-          stompClient.send("/app/search", {}, JSON.stringify(search.split(',')));
-      });
-    }
+        var baseUrl         = /*[[@{/api/search}]]*/ "/";
+        alert(baseUrl);
+        var currentLocation = window.location.href;
+        var search          = currentLocation.substr(currentLocation.lastIndexOf('/'));
+        var url             = baseUrl + search;
+        alert(url);
 
+        /*]]>*/
+
+        $.ajax({
+            url        : url,
+            type       : "GET",
+            beforeSend : setEtag,
+            success    : onResponse
+        })
+
+        function getLastQuery() {
+            return JSON.parse(localStorage.getItem('lastQuery')) || {};
+        }
+
+        function storeQuery(query) {
+            // use the JavaScript function JSON.stringify() to convert it into a string.
+            localStorage.setItem('lastQuery', JSON.stringify(query));
+        }
+
+        function setEtag(xhr) {
+            xhr.setRequestHeader('If-None-Match', getLastQuery().etag)
+        }
+
+        function onResponse(tweets, status, xhr) {
+          if (xhr.status == 304) {
+              console.dir(getLastQuery());
+              tweets = getLastQuery().tweets
+          }
+
+          var etag = xhr.getResponseHeader('Etag');
+          storeQuery({tweets: tweets, etag: etag});
+          displayTweets(tweets);
+        }
 
         function displayTweets(tweets) {
-            $.each(tweets, function (index, tweet) {
-                addTweet(tweet);
-            })
-        }
-        function addTweet(tweet) {
-            var template = _.template('<li class="collection-item avatar">' +
-                '<img class="circle" src="${tweet.profileImageUrl}" />' +
-                '<span class="title">${tweet.userName}</span>' +
-                '<p>${tweet.text}</p>' +
-                '</li>');
-            $('#tweets').append(template({tweet: tweet}));
+          $('#tweets').empty();
+          $.each(tweets, function (index, tweet) {
+              addTweet(tweet);
+          })
         }
 
-        connect();
+        function addTweet(tweet) {
+            var template     = _.template('<li class="collection-item avatar">' +
+                '<img class  = "circle" src="${tweet.profileImageUrl}" />' +
+                '<span class = "title">${tweet.user}</span>' +
+                '<p>${tweet.text}</p>' +
+                '</li>');
+
+            $('#tweets').append(template({tweet: tweet}));
+        }
 
     </script>
 </body>
